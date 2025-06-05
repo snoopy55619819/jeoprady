@@ -1,108 +1,146 @@
 import { useState } from "react";
-import { Row, Col } from "antd";
 import { useGameStore } from "../store/gameStore";
 import Modal from "./Modal";
+import type { Question } from "../types/game";
 
 export default function JeopardyBoard() {
-  const { round, answeredQuestions } = useGameStore();
+  const { round, answeredQuestions, selectedGame, resetAnswerReveal } =
+    useGameStore();
   const [selectedCell, setSelectedCell] = useState<{
     category: string;
     value: string;
     question: string;
+    answer: string;
     questionKey: string;
   } | null>(null);
 
-  const categories = [
-    "THE I.T. GUY",
-    "PUBLISHED FIRST",
-    "STATE OF EMERGENCY",
-    "TV",
-    "A BILL IN CONGRESS",
-    '"UN" ENDING',
-  ];
+  // Get current round data
+  const currentRound = selectedGame?.rounds[round - 1];
 
-  const values =
-    round === 1 ? [200, 400, 600, 800, 1000] : [400, 800, 1200, 1600, 2000];
+  if (!selectedGame || !currentRound) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-yellow-400 text-xl">
+          Please select a game to start playing
+        </div>
+      </div>
+    );
+  }
 
-  const createQuestionKey = (category: string, value: number) => {
-    return `round${round}_${category
-      .replace(/\s+/g, "_")
-      .replace(/"/g, "")}_${value}`;
-  };
+  // For rounds 1 and 2, use categories and questions
+  if (round <= 2 && currentRound.categories) {
+    const categories = currentRound.categories;
+    const values = categories[0]?.questions.map((q) => q.value) || [];
 
-  const handleCellClick = (category: string, value: number) => {
-    const questionKey = createQuestionKey(category, value);
+    const createQuestionKey = (
+      categoryIndex: number,
+      questionIndex: number
+    ) => {
+      return `round${round}_${categoryIndex}_${questionIndex}`;
+    };
 
-    // Don't allow clicking on answered questions
-    if (answeredQuestions.has(questionKey)) {
-      return;
-    }
+    const handleCellClick = (
+      categoryIndex: number,
+      questionIndex: number,
+      question: Question
+    ) => {
+      const questionKey = createQuestionKey(categoryIndex, questionIndex);
 
-    setSelectedCell({
-      category,
-      value: `$${value}`,
-      question: `This is a placeholder question for ${category} worth $${value}. What is the answer to this clue?`,
-      questionKey,
-    });
-  };
+      if (answeredQuestions.has(questionKey)) {
+        return;
+      }
 
-  const handleCloseModal = () => {
-    setSelectedCell(null);
-  };
+      resetAnswerReveal();
+      setSelectedCell({
+        category: categories[categoryIndex].name,
+        value: `$${question.value}`,
+        question: question.question,
+        answer: question.answer,
+        questionKey,
+      });
+    };
 
-  const isAnswered = (category: string, value: number) => {
-    const questionKey = createQuestionKey(category, value);
-    return answeredQuestions.has(questionKey);
-  };
+    const handleCloseModal = () => {
+      setSelectedCell(null);
+    };
 
-  return (
-    <div className="w-full max-w-6xl mx-auto p-4">
-      {/* Header Row */}
-      <Row gutter={[4, 4]} className="mb-1">
-        {categories.map((category, index) => (
-          <Col key={index} span={4}>
-            <div className="bg-blue-800 border-2 border-yellow-400 text-yellow-400 font-bold text-center min-h-[60px] flex items-center justify-center p-2 text-sm md:text-lg lg:text-xl md:min-h-[80px] rounded-sm">
-              {category}
-            </div>
-          </Col>
-        ))}
-      </Row>
+    const isAnswered = (categoryIndex: number, questionIndex: number) => {
+      const questionKey = createQuestionKey(categoryIndex, questionIndex);
+      return answeredQuestions.has(questionKey);
+    };
 
-      {/* Value Rows */}
-      {values.map((value) => (
-        <Row key={value} gutter={[4, 4]} className="mb-1">
-          {categories.map((category, categoryIndex) => {
-            const answered = isAnswered(category, value);
-
-            return (
-              <Col key={`${value}-${categoryIndex}`} span={4}>
-                <div
-                  className={`
-                    border-2 border-yellow-400 font-bold text-center min-h-[80px] flex items-center justify-center p-5 text-lg md:text-2xl lg:text-3xl md:min-h-[100px] transition-colors duration-200 rounded-sm
-                    ${
-                      answered
-                        ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                        : "bg-blue-600 text-yellow-400 cursor-pointer hover:bg-blue-500"
-                    }
-                  `}
-                  onClick={() => !answered && handleCellClick(category, value)}
-                >
-                  {answered ? "" : `$${value}`}
+    return (
+      <div className="h-full flex flex-col">
+        <div className="flex-1 flex flex-col gap-1 p-2">
+          {/* Header Row */}
+          <div className="flex gap-1 flex-shrink-0">
+            {categories.map((category, index) => (
+              <div key={index} className="flex-1">
+                <div className="bg-blue-800 border-2 border-yellow-400 text-yellow-400 font-bold text-center h-12 sm:h-14 md:h-16 flex items-center justify-center p-1 text-xs sm:text-sm md:text-base lg:text-lg rounded-sm">
+                  <span className="text-center leading-tight">
+                    {category.name}
+                  </span>
                 </div>
-              </Col>
-            );
-          })}
-        </Row>
-      ))}
+              </div>
+            ))}
+          </div>
 
-      <Modal
-        isOpen={!!selectedCell}
-        onClose={handleCloseModal}
-        question={selectedCell?.question || ""}
-        value={selectedCell?.value || ""}
-        category={selectedCell?.category || ""}
-        questionKey={selectedCell?.questionKey || ""}
-      />
-    </div>
-  );
+          {/* Value Rows */}
+          <div className="flex-1 flex flex-col gap-1">
+            {values.map((_, questionIndex) => (
+              <div key={questionIndex} className="flex gap-1 flex-1">
+                {categories.map((category, categoryIndex) => {
+                  const question = category.questions[questionIndex];
+                  const answered = isAnswered(categoryIndex, questionIndex);
+
+                  if (!question) return null;
+
+                  return (
+                    <div
+                      key={`${questionIndex}-${categoryIndex}`}
+                      className="flex-1"
+                    >
+                      <div
+                        className={`
+                          border-2 border-yellow-400 font-bold text-center h-full flex items-center justify-center p-2 text-lg sm:text-xl md:text-2xl lg:text-3xl transition-colors duration-200 rounded-sm cursor-pointer
+                          ${
+                            answered
+                              ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                              : "bg-blue-600 text-yellow-400 hover:bg-blue-500"
+                          }
+                        `}
+                        onClick={() =>
+                          !answered &&
+                          handleCellClick(
+                            categoryIndex,
+                            questionIndex,
+                            question
+                          )
+                        }
+                      >
+                        {answered ? "" : `$${question.value}`}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Modal
+          isOpen={!!selectedCell}
+          onClose={handleCloseModal}
+          question={selectedCell?.question || ""}
+          answer={selectedCell?.answer || ""}
+          value={selectedCell?.value || ""}
+          category={selectedCell?.category || ""}
+          questionKey={selectedCell?.questionKey || ""}
+        />
+      </div>
+    );
+  }
+
+  // This should not render for round 3 (handled by FinalRound component)
+  return null;
 }

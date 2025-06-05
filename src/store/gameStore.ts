@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { GameData, FinalRoundWager } from "../types/game";
 
 export interface Player {
   id: string;
@@ -8,16 +9,26 @@ export interface Player {
 
 export interface GameState {
   players: Player[];
-  round: 1 | 2;
+  round: 1 | 2 | 3; // Added round 3 for final round
   answeredQuestions: Set<string>; // store question keys like "round1_category_value"
+  games: GameData[];
+  selectedGame: GameData | null;
+  finalRoundWagers: FinalRoundWager[];
+  isAnswerRevealed: boolean;
 
   // Actions
   addPlayer: (name: string) => void;
   updatePlayerScore: (playerId: string, points: number) => void;
-  setRound: (round: 1 | 2) => void;
+  updatePlayerName: (playerId: string, name: string) => void;
+  setRound: (round: 1 | 2 | 3) => void;
   markQuestionAnswered: (questionKey: string) => void;
   resetGame: () => void;
   removePlayer: (playerId: string) => void;
+  setGames: (games: GameData[]) => void;
+  setSelectedGame: (game: GameData | null) => void;
+  setFinalRoundWager: (playerId: string, wager: number) => void;
+  setAnswerRevealed: (revealed: boolean) => void;
+  resetAnswerReveal: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -28,6 +39,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   ],
   round: 1,
   answeredQuestions: new Set(),
+  games: [],
+  selectedGame: null,
+  finalRoundWagers: [],
+  isAnswerRevealed: false,
 
   addPlayer: (name: string) => {
     const { players } = get();
@@ -51,8 +66,16 @@ export const useGameStore = create<GameState>((set, get) => ({
     }));
   },
 
-  setRound: (round: 1 | 2) => {
-    set({ round });
+  updatePlayerName: (playerId: string, name: string) => {
+    set((state) => ({
+      players: state.players.map((player) =>
+        player.id === playerId ? { ...player, name } : player
+      ),
+    }));
+  },
+
+  setRound: (round: 1 | 2 | 3) => {
+    set({ round, finalRoundWagers: [] }); // Reset wagers when changing rounds
   },
 
   markQuestionAnswered: (questionKey: string) => {
@@ -70,6 +93,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       ],
       round: 1,
       answeredQuestions: new Set(),
+      finalRoundWagers: [],
+      isAnswerRevealed: false,
     });
   },
 
@@ -77,5 +102,36 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((state) => ({
       players: state.players.filter((player) => player.id !== playerId),
     }));
+  },
+
+  setGames: (games: GameData[]) => {
+    set({ games });
+  },
+
+  setSelectedGame: (game: GameData | null) => {
+    set({
+      selectedGame: game,
+      round: 1,
+      answeredQuestions: new Set(),
+      finalRoundWagers: [],
+      isAnswerRevealed: false,
+    });
+  },
+
+  setFinalRoundWager: (playerId: string, wager: number) => {
+    set((state) => ({
+      finalRoundWagers: [
+        ...state.finalRoundWagers.filter((w) => w.playerId !== playerId),
+        { playerId, wager },
+      ],
+    }));
+  },
+
+  setAnswerRevealed: (revealed: boolean) => {
+    set({ isAnswerRevealed: revealed });
+  },
+
+  resetAnswerReveal: () => {
+    set({ isAnswerRevealed: false });
   },
 }));

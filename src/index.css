@@ -6,6 +6,8 @@ body {
   font-family: ui-sans-serif, system-ui, sans-serif;
   margin: 0;
   padding: 0;
+  min-width: 320px;
+  min-height: 100vh;
 }
 
 /* Ant Design Modal customizations for Jeopardy theme */
@@ -52,4 +54,55 @@ body {
 .ant-typography h6 {
   color: inherit !important;
   margin-top: 0 !important;
+}
+
+/* Custom Jeopardy styling */
+.game-selector .ant-select-selector {
+  background-color: #2563eb !important;
+  border: 2px solid #fbbf24 !important;
+  color: #fbbf24 !important;
+}
+
+.game-selector .ant-select-selection-item {
+  color: #fbbf24 !important;
+}
+
+.compact-game-selector .ant-select-selector {
+  background-color: #2563eb !important;
+  border: 2px solid #fbbf24 !important;
+  color: #fbbf24 !important;
+}
+
+.compact-game-selector .ant-select-selection-item {
+  color: #fbbf24 !important;
+}
+
+.player-name-input .ant-input {
+  background-color: #2563eb !important;
+  border: 2px solid #fbbf24 !important;
+  color: #fbbf24 !important;
+}
+
+.player-name-input .ant-input::placeholder {
+  color: #fbbf24 !important;
+  opacity: 0.7;
+}
+
+/* Ant Design dropdown styling */
+.ant-select-dropdown {
+  background-color: #2563eb !important;
+  border: 1px solid #fbbf24 !important;
+}
+
+.ant-select-item {
+  color: #fbbf24 !important;
+}
+
+.ant-select-item:hover {
+  background-color: #1e40af !important;
+}
+
+.ant-select-item-option-selected {
+  background-color: #1e40af !important;
+  color: #fbbf24 !important;
 }
