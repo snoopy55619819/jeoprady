@@ -12,6 +12,8 @@ interface ModalProps {
   value: string;
   category: string;
   questionKey: string;
+  attachment?: string;
+  attachment_type?: string;
 }
 
 export default function Modal({
@@ -22,6 +24,8 @@ export default function Modal({
   value,
   category,
   questionKey,
+  attachment,
+  attachment_type,
 }: ModalProps) {
   const {
     players,
@@ -55,6 +59,9 @@ export default function Modal({
     onClose();
   };
 
+  // Check if attachment exists
+  const hasAttachment = !!(attachment && attachment_type);
+
   return (
     <AntModal
       open={isOpen}
@@ -67,8 +74,11 @@ export default function Modal({
         content: {
           backgroundColor: "#1e40af",
           border: "4px solid #fbbf24",
-          borderRadius: "8px",
-          minHeight: "85vh",
+          borderRadius: "12px",
+          height: "90vh",
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
         },
         header: {
           backgroundColor: "#1e40af",
@@ -77,112 +87,150 @@ export default function Modal({
         },
         body: {
           backgroundColor: "#1e40af",
-          padding: "32px",
+          padding: "24px",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
         },
       }}
       closeIcon={null}
     >
-      <div className="text-center h-full flex flex-col">
-        {/* Header Section - Category and Value */}
-        <div className="flex-shrink-0 mb-8">
+      <div className="h-full flex flex-col overflow-hidden">
+        {/* Static Header - Category and Value - Fixed Height */}
+        <div className="flex-shrink-0 text-center" style={{ height: "120px" }}>
           <Title
             level={3}
-            className="text-yellow-400 font-bold mb-4 text-2xl md:text-3xl"
+            className="text-yellow-400 font-bold mb-2 text-xl md:text-2xl"
           >
             {category}
           </Title>
           <Title
             level={1}
-            className="text-yellow-400 font-bold text-4xl md:text-6xl lg:text-7xl mb-0"
+            className="text-yellow-400 font-bold text-3xl md:text-5xl lg:text-6xl mb-0"
           >
             {value}
           </Title>
         </div>
 
-        {/* Question Section - Main Focus */}
-        <div className="flex-1 flex items-center justify-center mb-8">
-          <div className="max-w-5xl w-full">
+        {/* Question and Attachment Section - Flexible Height */}
+        <div className="flex-1 flex flex-col items-center justify-center min-h-0 py-4">
+          <div className="max-w-5xl w-full text-center">
             <Text
-              className="text-white leading-none font-bold block px-8 py-16 text-center"
+              className="text-white leading-tight font-bold block px-4"
               style={{
-                fontSize: "clamp(20px, 25vw, 60px)",
-                lineHeight: "0.9",
+                fontSize: hasAttachment
+                  ? "clamp(14px, 2.5vw, 32px)"
+                  : "clamp(16px, 3.5vw, 48px)",
+                lineHeight: "1.1",
               }}
             >
               {question}
             </Text>
           </div>
-        </div>
 
-        {/* Action Section */}
-        <div className="flex-shrink-0">
-          {!isAnswerRevealed ? (
-            <Button
-              type="default"
-              size="large"
-              onClick={handleRevealAnswer}
-              className="font-bold text-xl mb-8 px-12 py-6 h-auto"
-            >
-              Reveal Answer
-            </Button>
-          ) : (
-            <div className="border-t border-yellow-400 pt-6 mb-6">
-              <div className="bg-blue-800 rounded-lg border-2 border-yellow-400 p-4 mb-6 max-w-3xl mx-auto">
-                <Title
-                  level={3}
-                  className="text-yellow-400 mb-0 text-xl md:text-2xl"
+          {/* Attachment Section */}
+          {hasAttachment && (
+            <div className="mt-4 max-w-5xl w-full flex justify-center">
+              {attachment_type === "image" && (
+                <img
+                  src={attachment}
+                  alt="Question attachment"
+                  className="max-w-full max-h-96 object-contain rounded-lg border-2 border-yellow-400"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
+                />
+              )}
+              {attachment_type === "video" && (
+                <video
+                  src={attachment}
+                  controls
+                  className="max-w-full max-h-96 rounded-lg border-2 border-yellow-400"
+                  onError={(e) => {
+                    const target = e.target as HTMLVideoElement;
+                    target.style.display = "none";
+                  }}
                 >
-                  {answer}
-                </Title>
-              </div>
+                  Your browser does not support the video tag.
+                </video>
+              )}
             </div>
           )}
+        </div>
 
-          <div className="border-t border-yellow-400 pt-4">
-            <Title level={5} className="text-yellow-400 mb-4 text-lg">
-              Who got it right?
-            </Title>
-
-            <Row gutter={[12, 12]} justify="center" className="mb-4">
-              {players.map((player) => (
-                <Col key={player.id} xs={12} sm={8} md={6} lg={4}>
-                  <Button
-                    type="primary"
-                    size="middle"
-                    onClick={() => handlePlayerSelect(player)}
-                    className="w-full font-bold text-sm py-3 h-auto"
-                  >
-                    {player.name}
-                    <br />
-                    <span className="text-xs opacity-90">
-                      ${player.score.toLocaleString()}
-                    </span>
-                  </Button>
-                </Col>
-              ))}
-            </Row>
-
-            <Row gutter={[12, 12]} justify="center">
-              <Col xs={8} sm={6} md={4}>
-                <Button
-                  size="middle"
-                  onClick={handleSkip}
-                  className="w-full font-bold text-sm py-2"
-                >
-                  Skip
-                </Button>
-              </Col>
-              <Col xs={8} sm={6} md={4}>
-                <Button
-                  size="middle"
-                  onClick={handleClose}
-                  className="w-full font-bold text-sm py-2"
-                >
-                  Cancel
-                </Button>
-              </Col>
-            </Row>
+        {/* Answer/Reveal Section - Fixed Height to Prevent Layout Shift */}
+        <div className="flex-shrink-0 text-center" style={{ height: "80px" }}>
+          <div className="h-full flex items-center justify-center">
+            {!isAnswerRevealed ? (
+              <Button
+                type="default"
+                size="large"
+                onClick={handleRevealAnswer}
+                className="font-bold text-lg px-8 py-4 h-auto"
+              >
+                Reveal Answer
+              </Button>
+            ) : (
+              <Title
+                level={3}
+                className="text-yellow-400 mb-0 text-lg md:text-xl font-bold"
+              >
+                {answer}
+              </Title>
+            )}
           </div>
+        </div>
+
+        {/* Static Footer - Who got it right section - Fixed Height */}
+        <div
+          className="flex-shrink-0 text-center border-t border-yellow-400 pt-4"
+          style={{ height: "140px" }}
+        >
+          <Title level={5} className="text-yellow-400 mb-3 text-base">
+            Who got it right?
+          </Title>
+
+          <Row gutter={[8, 8]} justify="center" className="mb-3">
+            {players.map((player) => (
+              <Col key={player.id} xs={8} sm={6} md={4} lg={3}>
+                <Button
+                  type="primary"
+                  size="small"
+                  onClick={() => handlePlayerSelect(player)}
+                  className="w-full font-bold text-xs py-2 h-auto"
+                >
+                  {player.name}
+                  <br />
+                  <span className="text-xs opacity-90">
+                    ${player.score.toLocaleString()}
+                  </span>
+                </Button>
+              </Col>
+            ))}
+          </Row>
+
+          <Row gutter={[8, 8]} justify="center">
+            <Col xs={6} sm={4} md={3}>
+              <Button
+                size="small"
+                onClick={handleSkip}
+                className="w-full font-bold text-xs py-1"
+              >
+                Skip
+              </Button>
+            </Col>
+            <Col xs={6} sm={4} md={3}>
+              <Button
+                size="small"
+                onClick={handleClose}
+                className="w-full font-bold text-xs py-1"
+              >
+                Cancel
+              </Button>
+            </Col>
+          </Row>
         </div>
       </div>
     </AntModal>

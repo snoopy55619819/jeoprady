@@ -6,12 +6,15 @@ import PlayerSetup from "./components/PlayerSetup";
 import JeopardyBoard from "./components/JeopardyBoard";
 import FinalRound from "./components/FinalRound";
 import Scoreboard from "./components/Scoreboard";
+import useAnimatedFavicon from "./hooks/useAnimatedFavicon";
 
 const { Title } = Typography;
 
 function App() {
   const { round, setRound, selectedGame } = useGameStore();
   const [playersSetup, setPlayersSetup] = useState(false);
+
+  useAnimatedFavicon();
 
   // Reset player setup when game changes
   useEffect(() => {

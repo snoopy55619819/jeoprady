@@ -46,12 +46,9 @@ export default function PlayerSetup({ onComplete }: PlayerSetupProps) {
           {players.map((player, index) => (
             <Col key={player.id} xs={24} sm={8}>
               <div className="text-center">
-                <Title level={5} className="text-yellow-400 mb-2">
-                  Player {index + 1}
-                </Title>
                 <Input
                   size="large"
-                  placeholder={`Enter player ${index + 1} name`}
+                  placeholder={`Player ${index + 1}`}
                   value={localNames[index]}
                   onChange={(e) => handleNameChange(index, e.target.value)}
                   className="player-name-input"

@@ -12,6 +12,8 @@ export default function JeopardyBoard() {
     question: string;
     answer: string;
     questionKey: string;
+    attachment?: string;
+    attachment_type?: string;
   } | null>(null);
 
   // Get current round data
@@ -57,6 +59,8 @@ export default function JeopardyBoard() {
         question: question.question,
         answer: question.answer,
         questionKey,
+        attachment: question.attachment,
+        attachment_type: question.attachment_type,
       });
     };
 
@@ -136,6 +140,8 @@ export default function JeopardyBoard() {
           value={selectedCell?.value || ""}
           category={selectedCell?.category || ""}
           questionKey={selectedCell?.questionKey || ""}
+          attachment={selectedCell?.attachment}
+          attachment_type={selectedCell?.attachment_type}
         />
       </div>
     );

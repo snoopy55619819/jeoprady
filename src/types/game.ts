@@ -2,6 +2,8 @@ export interface Question {
   question: string;
   answer: string;
   value: number;
+  attachment?: string; // URL of the attachment
+  attachment_type?: string; // Type: "image", "video", etc.
 }
 
 export interface Category {
