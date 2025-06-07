@@ -132,7 +132,13 @@ export default function FinalRound({ finalRound }: FinalRoundProps) {
                   body: { backgroundColor: "#2563eb", padding: "32px" },
                 }}
               >
-                <Text className="text-white text-xl md:text-2xl leading-relaxed block mb-6">
+                <Text
+                  className="text-white font-bold block mb-6"
+                  style={{
+                    fontSize: "clamp(16px, 3.5vw, 35px)",
+                    lineHeight: "1.1",
+                  }}
+                >
                   {finalRound.question}
                 </Text>
 
